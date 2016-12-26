@@ -2,6 +2,9 @@
 % Smaller paper size for easier reading, print two pages per a4 side.
 \usepackage[a5paper]{geometry}
 \usepackage{csquotes}
+\usepackage{amsmath}
+\usepackage{enumitem}
+\setlist[description]{leftmargin=\parindent,labelindent=\parindent}%Indent descriptions
 \MakeOuterQuote{"}
 % Indent first paragraphs in sections and chapters
 \usepackage{indentfirst}
@@ -55,14 +58,44 @@ The anti-codons and codons match up to form complementary base pairs.
 Peptide bonds form between the adjacent amino acids to form the polypeptide, which is a protein.
 
 \chapter{Sequence Alignment}
-We have a problem of aligning two sequences.
-We can do two types of alignment: "global" and "local".
-During alignment there are two actions we can take:
-\begin{itemize}
-\item Remove the first symbol from each sequence, thereby creating a "match" or "mismatch".
-\item Remove the first symbol from one of the sequences, thereby creating "deletion" or "insertion".
-\end{itemize}
-\section{Local Alignment}
-We can represent the alignment search space as a graph.
-We start with a 
+The goal of the alignment algorithms is to find the longest common subsequence of two sequences.
+Alignment of $n$ sequences is an $n\text{-row}$ matrix, where $n$th row represents the symbols of $n$th sequence (in order) interspersed by "-".
+Corresponding symbols in different sequences can have four different relations to each other:
+\begin{description}
+\item[Match] The symbols are the same.
+\item[Mismatch] The symbols are different.
+\item[Insertion] "Primary" symbol is "-".
+\item[Deletion] "Secondary" symbol is "-".
+\end{description}
+Matches in alignment of two sequences form "common subsequence".
+\paragraph{Global Alignment}
+We can represent the alignment search space as an edge-weighted directed acyclic graph.
+We can construct such DAC by creating a rectangular grid of nodes, with source in the top-left and destination in the bottom-right.
+Then we add edges, of which there are three types:
+\begin{description}
+\item[Match/Mismatch] Connects neighbouring nodes diagonally from top-left to bottom-right.
+\item[Insertion] Connects neighbouring nodes horizontally from left to right.
+\item[Deletion] Connects neighbouring nodes vertically from top to bottom.
+\end{description}
+Global alignment can be found by finding the longest path from the source to the destination.
+To find the longest path we start at the source and calculate the length of path to all its children.
+To do that we consider all incoming edges and their source nodes.
+The longest path will go through the edge which has the greatest sum of its cost and path cost to its source node.
+Once we calculate which edge the longest path goes through that's the only information we need to store.
+Therefore we can iteratively calculate path length to all nodes.
+Finally to calculate the longest path from source to destination we start at the destination and iteratively move backwards along the stored edges until we arrive at the source.
+\paragraph{Parametrisation}
+We can parametrise the longest path by assigning different weights to different types of edges.
+Match/mismatch edges can be weighted by considering how likely it is for the codon in primary sequence to mutate into codon in the secondary sequence.
+These weights are usually calculated empirically.
+Insertions and deletions on the other hand depend only on their length.
+Combined insertions/deletion should usually have lower penalty that separate ones.
+There are two costs: cost to begin insertion/deletion and cost to extend it.
+Our DAC can be extended to represent that by adding vertical and horizontal edges that go across multiple nodes.
+\paragraph{Local alignment}
+Local alignment refers to a long sequence of uninterrupted matches.
+This corresponds to the idea that two sequences should not align perfectly, but rather only their ends should align.
+We can compute local alignment by computing global alignment in sub-rectangle of the graph.
+To do this we add a zero-weight edge between top-left node in the sub-rectangle and source and another between bottom-right node and destination.
+Finding the longest path requires $O(n)$ memory and $O(n^k)$ time where $n$ is the length of the longest sequence and $k$ is the number of sequences to align.
 \end{document}
