@@ -4,6 +4,8 @@
 \usepackage{csquotes}
 \usepackage{amsmath}
 \usepackage{enumitem}
+\usepackage{microtype}
+\usepackage[T1]{fontenc}
 \setlist[description]{leftmargin=\parindent,labelindent=\parindent}%Indent descriptions
 \MakeOuterQuote{"}
 % Indent first paragraphs in sections and chapters
@@ -29,7 +31,6 @@
 \pagenumbering{arabic}
 
 \chapter{Biology background}
-\section{DNA}
 \paragraph{Structure of DNA}
 DNA is structured as a double helix.
 Each helix is a sequence of nucleotides, there are four types of nucleotides: A,C,T and G.
@@ -73,7 +74,7 @@ We can represent the alignment search space as an edge-weighted directed acyclic
 We can construct such DAC by creating a rectangular grid of nodes, with source in the top-left and destination in the bottom-right.
 Then we add edges, of which there are three types:
 \begin{description}
-\item[Match/Mismatch] Connects neighbouring nodes diagonally from top-left to bottom-right.
+\item[Match/Mismatch] Connects neighbouring nodes diagonally\break from top-left to bottom-right.
 \item[Insertion] Connects neighbouring nodes horizontally from left to right.
 \item[Deletion] Connects neighbouring nodes vertically from top to bottom.
 \end{description}
@@ -97,5 +98,19 @@ Local alignment refers to a long sequence of uninterrupted matches.
 This corresponds to the idea that two sequences should not align perfectly, but rather only their ends should align.
 We can compute local alignment by computing global alignment in sub-rectangle of the graph.
 To do this we add a zero-weight edge between top-left node in the sub-rectangle and source and another between bottom-right node and destination.
-Finding the longest path requires $O(n)$ memory and $O(n^k)$ time where $n$ is the length of the longest sequence and $k$ is the number of sequences to align.
+\paragraph{Improving space complexity}
+Since DNA sequences are very long, we frequently run of working space.
+Finding the longest path has $O(nm)$ space complexity where $n$ and $m$ are lengths of sequences to align.
+We can improve space complexity to $O(n)$ by sacrificing time.
+This is possible since to we can compute the middle node using only $O(n)$ space by considering each column in turn.
+Since the results of column $i$ only rely on the results of column $i-1$, we only need to store at most two columns in memory.
+If we compute scores for middle column coming from both sides, we can find the middle node.
+After we found the middle node, we divide the graph into four rectangles and then recur on top-left and bottom-right rectangles.
+By doing that we improve space complexity to $O(n)$, since we only ever finding the middle node, while keeping time complexity the same, but increasing it by a constant.
+\paragraph{BLAST}
+BLAST stands for Basic Local Alignment Search Tool.
+It is a program designed for comparing protein sequences against a large database to find local similarity.
+It uses a hash table to store all possible sub-sequences of a given length in the database.
+BLAST relies on assumption that we only care for near perfect alignments >95\%, therefore we expect to see long runs of perfectly matching sub-sequences.
+It uses a heuristic to find short matches between sequences and then uses those to start the alignment.
 \end{document}
