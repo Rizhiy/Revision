@@ -1,10 +1,12 @@
 \documentclass{report}
 % Smaller paper size for easier reading, print two pages per a4 side.
 \usepackage[a5paper]{geometry}
+\usepackage{pdflscape}
 \usepackage{csquotes}
 \usepackage{amsmath}
 \usepackage{enumitem}
 \usepackage{microtype}
+\usepackage{calc}
 \usepackage[T1]{fontenc}
 \setlist[description]{leftmargin=\parindent,labelindent=\parindent}%Indent descriptions
 \MakeOuterQuote{"}
@@ -113,4 +115,63 @@ It is a program designed for comparing protein sequences against a large databas
 It uses a hash table to store all possible sub-sequences of a given length in the database.
 BLAST relies on assumption that we only care for near perfect alignments >95\%, therefore we expect to see long runs of perfectly matching sub-sequences.
 It uses a heuristic to find short matches between sequences and then uses those to start the alignment.
+%"Introduce wild-cards to allow near-perfect matches" - not sure what that means.
+\chapter{Clustering}
+Clustering combines elements that are close to each other into the same cluster.
+Since we expect similar sequences to have the same ancestor, we can use clustering to build the evolutionary tree.
+\section{Types of clustering algorithms}
+There are four main types of clustering algorithms:
+\begin{itemize}
+\item Hierarchical
+\item k-means
+\item Distribution based
+\item Density based
+\end{itemize}
+\paragraph{Hierarchical clustering}
+This approach clusters points based on the distance between them.
+It works as follows:
+\begin{enumerate}
+\item Consider each node as a cluster
+\item Calculate distances between all clusters
+\item Find the smallest distance and combine corresponding clusters into one, using weighted average for new position.
+\item Repeat previous two steps until there is only one cluster left.
+\end{enumerate}
+In parallel to merging clusters we create a leaf for every cluster at the start.
+When two clusters are merged we create a new vertex and connect it to the vertices which represent the clusters which were combined.
+After clustering is complete we can separate our set into $n$ clusters by undoing $n$ merges in reverse order.
+\paragraph{k-means clustering}
+This approach combines nodes into $k$ clusters, it works as follows:
+\begin{enumerate}
+\item Assign $k$ arbitrary centres.
+\item Assign each node to a cluster based on the closest centre.
+\item Calculate the centre of gravity of each cluster and move its centre to the node which is closest to the centre of gravity.
+\item Repeat previous two steps until centres stop moving.
+\end{enumerate}
+Optimal number of clusters ($k$) has high cluster stability, e.g.\ it doesn't matter which nodes you choose as initial centres, final clusters will always be the same.
+k-means is very fast as well.
+\paragraph{Distribution based clustering} %TODO
+\paragraph{Density based clustering} %TODO
+\section{Clustering vs.\ Classification}
+Clustering is unsupervised and should be used when we want to find if there are any relationships between the data points.
+Classification on the other hand is supervised and should be used when we want to separate the data into predetermined classes.
+\section{Distance and Similarity}
+Distance and similarity refer to what percentage of symbols mismatch between two data-sets.
+Distance metrics must obey triangle inequality.
+E.g.\ if we have two biased coins and we flip them 100 times we can count how many times each coin landed heads up.
+Based on how close the two counts are, we can infer that coins are either similarly weighted or not.
+
+This is relevant because we can infer from how objects behave how similar they are.
+Similar things usually are genetically closer to each other than distant ones.
+Therefore we can construct evolution tree using similarities.
+
+\chapter{Markov models}
+\begin{description}
+\item[Markov property] The future only depends on the present and not on the past.
+\end{description}
+Markov chain is a stochastic process that satisfies markov property.
+Hidden markov model is a model which is assumed to be a markov chain with unobserved states.
+\section{Markov-clustering (MCL)}
+MCL assumes that dense cluster correspond to regions with a large number of paths.
+It takes an undirected graph as an input and alternatively expands the matrix (multiplying it by itself) and inflating it (element wise multiplication).
+It's a good algorithm to use if we don't know how many clusters exist in the data.
 \end{document}
