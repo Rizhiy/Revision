@@ -8,6 +8,8 @@
 \usepackage{microtype}
 \usepackage{calc}
 \usepackage[T1]{fontenc}
+% Toc modification
+\usepackage{tocvsec2}
 \setlist[description]{leftmargin=\parindent,labelindent=\parindent}%Indent descriptions
 \MakeOuterQuote{"}
 % Indent first paragraphs in sections and chapters
@@ -20,6 +22,8 @@
 \expandafter\def\expandafter\quote\expandafter{\quote\small\singlespacing}
 
 
+\newcommand\nb{\par\nobreak\smallskip\textbf{N.B. }}
+
 % Keep each sentense on separate line to help with version control.
 % Quotes can remain on one line since they don't usually change.
 
@@ -28,6 +32,7 @@
 \maketitle
 \cleardoublepage
 \pagenumbering{gobble}
+\settocdepth{section}
 \tableofcontents
 \cleardoublepage
 \pagenumbering{arabic}
@@ -68,4 +73,86 @@ This can be done in $O(n)$ where $n$ is the number of documents in collection, i
 
 When computing a conjunctive query with more than two terms we process them based on length of posting lists, in ascending order.
 For disjunctive terms we can estimate the size of result using the sum of sizes of disjuncts.
+
+\chapter{Indexing}
+The major steps in inverted index constructions are:
+\begin{enumerate}
+\item Collect the documents to be indexed.
+\item Tokenize the text.
+\item Perform linguistic preprocessing of tokens.
+\item Index the documents that each term occurs in.
+\end{enumerate}
+\section{Skip lists}
+When we construct an inverted index we can use either a linked list or a variable length array.
+In the case we use a linked list there is a natural optimisation we can perform.
+To create a skip list we can link together every $n$ elements.
+This allows us to compare to lists quicker.
+
+Size of $n$, number of elements skipped, presents a trade-off: number of items skipped vs.\ frequency that skip can be taken.
+Usually $n=\sqrt{L}$ where $L$ is the length of the list.
+\nb Skip lists used to help a lot, but with today's fast CPUs they don't help that much anymore.
+\section{SPIMI}
+During indexing large collections we can't keep and sort all postings in-memory.
+We cannot sort very large records on disk either (too many disk seeks, expensive).
+We can use \textbf{Block-Based} sorting algorithm.
+Two key ideas:
+\begin{itemize}
+\item Generate separate dictionaries for each block.
+\item Accumulate postings in posting lists as they occur.
+\end{itemize}
+Using those two ideas we can generate complete invert index for each block and then merge blocks at the end.
+\section{Document and term normalisation}
+A lot of words used in documents have similar meaning and should be tokenised the same, e.g.\ multiples, capitalisation, misspelling, etc.
+Most of the time we also need to prepare a document before it can be tokenised, we need to consider:
+\begin{itemize}
+\item Compression and binary representation.
+\item Format (excel, pdf, latex, etc.)
+\item Character set
+\item Language the document is written in.
+\end{itemize}
+Each of these is a statistical classification problem.
+Also deciding what is a "document" is not trivial.
+
+\paragraph{Tokenisation} It is frequently difficult to decide how to tokenise the text.
+Splitting text into words is non trivial, so is parsing numbers.
+Text can use different scripts (Japanese) and can be written in different directions (Arabic).
+
+There are several useful techniques:
+\begin{description}
+\item[Case folding] Reduce the text to lowercase.
+\item[Stop words] Frequent words that don't matter can be excluded (a, the, an, etc).
+\item[Equivalence classing] Words with the same meaning should result in the same token (car = automobile).
+\item[Lemmatisation] Reduce inflections, derivations to base form (am, are, is $\rightarrow$ be).
+\item[Stemming] Chopping the end of word off (cheaper lemmatisation).
+\end{description}
+
+\section{Phrase Queries}
+Need to answer some queries as a phrase, e.g.\ "Cambridge University", but sentences line "The Duke of Cambridge recently went for a term-long course to a famous university" should not match.
+Therefore it is no longer sufficient to store docIDs in posting lists.
+Two ways to extend the inverted index:
+\begin{itemize}
+\item Biword index
+\item Positional index
+\end{itemize}
+\paragraph{Biword index}
+Index every consecutive pair of terms in the documents as a phrase.
+Two-word phrases can now easily be answered.
+For longer phrases use a conjunction, e.g.\ "cambridge university west campus" becomes "cambridge university AND university west AND west campus".
+Need to do post filtering to check whether the whole phrase is actually used. \textbf{Issues:} a lot of false positives and index blowup.
+\paragraph{Positional index}
+In addition to storing the docID, also store position in the document.
+We can now check phrases using position.
+It can also be used for proximity search.
+\nb We want to return the actual matching position, not just the document.
+\paragraph{Combination}
+Many biwords are extremely frequent (Michael Jackson, Los Angeles).
+For such biwords using a simple positional index is slow.
+Therefore to improve performance we can include frequent biwords as vocabulary terms.
+
+\section{Term Vocabulary}
+Can we estimate how many distinct words are used in a collection?
+Yes we can, \emph{Heap's Law}: $M = kT^b$ where $M$ is the size of vocabulary, $T$ is the number of tokens in the collection.
+Typical values for $k$ and $b$ are : $30\leq k\leq 100$ and $b \approx 0.5$.
+Heaps' Law is an empirical law.
+
 \end{document}
